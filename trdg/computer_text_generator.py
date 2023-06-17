@@ -179,6 +179,7 @@ def _generate_vertical_text(
     txt_img = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
     txt_mask = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
 
+    # 描画用インスタンス生成
     txt_img_draw = ImageDraw.Draw(txt_img)
     txt_mask_draw = ImageDraw.Draw(txt_mask)
     txt_mask_draw.fontmode = "1"
@@ -201,6 +202,16 @@ def _generate_vertical_text(
         rnd.randint(stroke_c1[2], stroke_c2[2]),
     )
 
+    # 長音符文字位置リスト
+    prolonged_sound_mark_char_index = []
+
+    def check_sound_mark(target:str):
+        if target in ['-', 'ー']:
+            return True
+        return False
+
+
+    # テキスト１文字ずつ処理
     for i, c in enumerate(text):
         txt_img_draw.text(
             (0, sum(char_heights[0:i]) + i * character_spacing),
@@ -218,6 +229,22 @@ def _generate_vertical_text(
             stroke_width=stroke_width,
             stroke_fill=stroke_fill,
         )
+
+        if check_sound_mark(c):
+            prolonged_sound_mark_char_index.append(sum(char_heights[0:i]) + i * character_spacing)
+
+    # 長音符が存在する場合の縦書きでは、横に寝かせる
+    for rot_item in prolonged_sound_mark_char_index:
+        char_height = get_text_height(image_font, 'ー') + character_spacing
+        # print("rot_item:", rot_item)
+        # print("Crop : ", (0, rot_item, text_width, (rot_item + char_height)))
+        # print("Paste to : ", (0, rot_item))
+        
+        # 該当部分を切り出して回転
+        txt_img_rotate = txt_img.crop((0, rot_item, text_width, (rot_item + char_height)))
+        txt_img_rotate = txt_img_rotate.rotate(-90, center=(text_width/2, text_width/2), expand=False, resample=Image.BICUBIC)
+        # 回転画像を重ね合わせ
+        txt_img.paste(txt_img_rotate, (0, rot_item)) 
 
     if fit:
         return txt_img.crop(txt_img.getbbox()), txt_mask.crop(txt_img.getbbox())
