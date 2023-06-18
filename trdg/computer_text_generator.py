@@ -242,7 +242,7 @@ def _generate_vertical_text(
         
         # 該当部分を切り出して回転
         txt_img_rotate = txt_img.crop((0, rot_item, text_width, (rot_item + char_height)))
-        txt_img_rotate = txt_img_rotate.rotate(-90, center=(text_width/2, text_width/2), expand=False, resample=Image.BICUBIC)
+        txt_img_rotate = txt_img_rotate.rotate(90, center=(text_width/2, text_width/2), expand=False, resample=Image.BICUBIC)
         # 回転画像を重ね合わせ
         txt_img.paste(txt_img_rotate, (0, rot_item)) 
 
